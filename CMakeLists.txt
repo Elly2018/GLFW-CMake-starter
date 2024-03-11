@@ -12,16 +12,31 @@ if( MSVC )
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup" )
 endif()
 
-set( GLFW-CMAKE-STARTER-SRC main.cpp glad.cpp )
+function(add_example ARG)
 
-add_executable( GLFW-CMake-starter WIN32 ${GLFW-CMAKE-STARTER-SRC} )
-target_link_libraries( GLFW-CMake-starter ${OPENGL_LIBRARIES} glfw )
-target_include_directories ( GLFW-CMake-starter PRIVATE "glad/include" )
+	set( EXAMPLE_SOURCES "" )
+	set( GLFW-CMAKE-STARTER-SRC "" )
+	get_filename_component( PROJECT_NAME ${ARG} NAME )
+	
+	file(GLOB_RECURSE EXAMPLE_SOURCES ${ARG}/*.cpp ${ARG}/*.hpp ${ARG}/*.cc ${ARG}/*.h)
+
+	set( GLFW-CMAKE-STARTER-SRC ${EXAMPLE_SOURCES} )
+
+	add_executable( ${PROJECT_NAME} WIN32 ${GLFW-CMAKE-STARTER-SRC} )
+	target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} glfw )
+	target_include_directories ( ${PROJECT_NAME} PRIVATE "glad/include" )
+	
+endfunction()
+
+add_example(
+	"example/triangle"
+)
+
 
 if( MSVC )
     if(${CMAKE_VERSION} VERSION_LESS "3.6.0")
         message( "\n\t[ WARNING ]\n\n\tCMake version lower than 3.6.\n\n\t - Please update CMake and rerun; OR\n\t - Manually set 'GLFW-CMake-starter' as StartUp Project in Visual Studio.\n" )
     else()
-        set_property( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT GLFW-CMake-starter )
+        set_property( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT "triangle" )
     endif()
 endif()
