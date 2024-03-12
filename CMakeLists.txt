@@ -44,6 +44,8 @@ set ( EXAMPLES
 	"example/triangle"
 	"example/triangle2"
 	"example/mesh"
+	"example/texture"
+	"example/camera"
 )
 
 foreach(EXAMPLE ${EXAMPLES})
