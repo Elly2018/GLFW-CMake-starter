@@ -15,9 +15,14 @@ void processInput(GLFWwindow* window)
     glfwSetWindowShouldClose(window, true);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* window, int w, int h)
 {
-  glViewport(0, 0, width, height);
+  if (w > h) {
+    glViewport(0, (h - w) / 2, w, w);
+  }
+  else {
+    glViewport((w - h) / 2, 0, h, h);
+  }
 }
 
 int main(void)
@@ -68,14 +73,13 @@ int main(void)
     glBindVertexArray(VAO);
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mesh->mNumVertices, mesh->mVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     glGenBuffers(1, &IND);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * face, index_array, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     
     glDisable(GL_CULL_FACE);
     
@@ -83,12 +87,18 @@ int main(void)
     glm_mat4_identity(idx);
     glm_mat4_identity(view);
     glm_mat4_identity(mvp);
-    glm_translate(view, new float[3] { 0, 0, 5 });
+    glm_translate(view, new float[3] { 0, 0, -10 });
     glm_perspective_default(640 / 480, projection);
-    glm_mat4_mul(idx, view, mvp);
-    glm_mat4_mul(mvp, projection, mvp);
-    glUniformMatrix4fv(0, 1, false, (float * )mvp);
-    glUniform3f(1, 1.0f, 0.5f, 0.5f);
+    mat4* ms[3] = { &projection, &view, &idx };
+    glm_mat4_mulN(ms, 3, mvp);
+    ourShader.setMat4("mvp", false, (float * )mvp);
+    ourShader.setFloat3("ourColor", new float [3]{ 1.0f, 0.5f, 0.5f });
+
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR)
+    {
+      std::cerr << "Error while creating mesh!" << std::endl;
+    }
 
     while (!glfwWindowShouldClose(window))
     {
@@ -97,7 +107,9 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
         ourShader.use();
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
+        glDrawElements(GL_TRIANGLES, face, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

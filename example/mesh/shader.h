@@ -50,6 +50,18 @@ public:
   {
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
   }
+  void setFloat3(const std::string& name, float* value) const
+  {
+    glUniform3f(glGetUniformLocation(ID, name.c_str()), value[0], value[1], value[2]);
+  }
+  void setFloat4(const std::string& name, float* value) const
+  {
+    glUniform4f(glGetUniformLocation(ID, name.c_str()), value[0], value[1], value[2], value[3]);
+  }
+  void setMat4(const std::string& name, bool transpose, float* value) const
+  {
+    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, value);
+  }
 
 private:
   void checkCompileErrors(unsigned int shader, std::string type)
