@@ -66,6 +66,7 @@ int main(void)
       index_array[d++] = (vf->mIndices[1]);
       index_array[d++] = (vf->mIndices[2]);
     }
+    std::cout << "face count: " << face << std::endl;
 
     Shader ourShader("color_vs", "color_fs");
     unsigned int VBO, VAO, IND;
@@ -73,17 +74,20 @@ int main(void)
     glBindVertexArray(VAO);
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mesh->mNumVertices, mesh->mVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(aiVector3D) * mesh->mNumVertices, mesh->mVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
+
+    std::cout << "vertices count: " << mesh->mNumVertices << std::endl;
 
     glGenBuffers(1, &IND);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * face, index_array, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, face * 3 * sizeof(unsigned int), index_array, GL_STATIC_DRAW);
     
-    glDisable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     
+    double time = glfwGetTime();
     mat4 idx, view, projection, mvp;
     glm_mat4_identity(idx);
     glm_mat4_identity(view);
@@ -110,12 +114,20 @@ int main(void)
         glClearColor(0.2f, 0.4f, 0.4f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ourShader.use();
+
+        double current = glfwGetTime();
+        double delta = current - time;
+        time = current;
+        glm_rotate(idx, delta * 0.5f , new float[3] { 0.0f, 1.0f, 0.0f });
+        mat4* ms[3] = { &projection, &view, &idx };
+        glm_mat4_mulN(ms, 3, mvp);
+
         ourShader.setMat4("mvp", false, (float*)mvp);
         ourShader.setFloat3("ourColor", new float [3] { 1.0f, 0.5f, 0.5f });
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
-        glDrawElements(GL_TRIANGLES, face, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, face * 3, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
