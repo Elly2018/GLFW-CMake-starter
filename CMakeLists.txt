@@ -30,7 +30,7 @@ function(add_example ARG)
 
 	set( GLFW-CMAKE-STARTER-SRC ${EXAMPLE_SOURCES} )
 
-	add_executable( ${PROJECT_NAME} WIN32 ${GLFW-CMAKE-STARTER-SRC} )
+	add_executable( ${PROJECT_NAME} ${GLFW-CMAKE-STARTER-SRC} )
 	target_link_directories( ${PROJECT_NAME} PUBLIC "build/assimp/lib/Debug" PUBLIC "build/assimp/lib/Release" )
 	target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} )
 	target_link_libraries( ${PROJECT_NAME} glfw )

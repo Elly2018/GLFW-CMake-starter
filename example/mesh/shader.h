@@ -1,15 +1,23 @@
 #include <glad/glad.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 
 class Shader
 {
 public:
   unsigned int ID;
-  Shader(const char* _vertexCode, const char* _fragmentCode)
+  Shader(const char* _vertexFile, const char* _fragmentFile)
   {
-    std::string vertexCode = _vertexCode;
-    std::string fragmentCode = _fragmentCode;
+    std::ifstream vStream(_vertexFile);
+    std::ifstream fStream(_fragmentFile);
+    std::stringstream _vertexCode;
+    std::stringstream _fragmentCode;
+    _vertexCode << vStream.rdbuf();
+    _fragmentCode << fStream.rdbuf();
+    std::string vertexCode = _vertexCode.str();
+    std::string fragmentCode = _fragmentCode.str();
     const char* vShaderCode = vertexCode.c_str();
     const char* fShaderCode = fragmentCode.c_str();
     // 2. compile shaders
@@ -60,7 +68,7 @@ public:
   }
   void setMat4(const std::string& name, bool transpose, float* value) const
   {
-    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, value);
+    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, transpose, value);
   }
 
 private:

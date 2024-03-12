@@ -82,17 +82,21 @@ int main(void)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * face, index_array, GL_STATIC_DRAW);
     
     glDisable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
     
     mat4 idx, view, projection, mvp;
     glm_mat4_identity(idx);
     glm_mat4_identity(view);
+    glm_mat4_identity(projection);
     glm_mat4_identity(mvp);
-    glm_translate(view, new float[3] { 0, 0, -10 });
+    glm_translate(view, new float[3] { 0, 0, -5 });
     glm_perspective_default(640 / 480, projection);
     mat4* ms[3] = { &projection, &view, &idx };
     glm_mat4_mulN(ms, 3, mvp);
-    ourShader.setMat4("mvp", false, (float * )mvp);
-    ourShader.setFloat3("ourColor", new float [3]{ 1.0f, 0.5f, 0.5f });
+    glm_mat4_print(idx, stderr);
+    glm_mat4_print(view, stderr);
+    glm_mat4_print(projection, stderr);
+    glm_mat4_print(mvp, stderr);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
@@ -106,6 +110,8 @@ int main(void)
         glClearColor(0.2f, 0.4f, 0.4f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ourShader.use();
+        ourShader.setMat4("mvp", false, (float*)mvp);
+        ourShader.setFloat3("ourColor", new float [3] { 1.0f, 0.5f, 0.5f });
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
