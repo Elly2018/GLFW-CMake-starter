@@ -37,6 +37,7 @@ endfunction()
 
 set ( EXAMPLES 
 	"example/triangle"
+	"example/triangle2"
 	"example/mesh"
 )
 
