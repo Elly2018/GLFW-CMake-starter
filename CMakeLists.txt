@@ -8,6 +8,7 @@ include_directories( ${OPENGL_INCLUDE_DIRS} )
 
 add_subdirectory( glfw )
 add_subdirectory( assimp )
+add_subdirectory( cglm )
 
 set_target_properties(assimp PROPERTIES FOLDER "assimp")
 set_target_properties(unit PROPERTIES FOLDER "assimp")
@@ -30,8 +31,12 @@ function(add_example ARG)
 	set( GLFW-CMAKE-STARTER-SRC ${EXAMPLE_SOURCES} )
 
 	add_executable( ${PROJECT_NAME} WIN32 ${GLFW-CMAKE-STARTER-SRC} )
-	target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} glfw )
-	target_include_directories ( ${PROJECT_NAME} PRIVATE "glad/include" "assimp/include" )
+	target_link_directories( ${PROJECT_NAME} PUBLIC "build/assimp/lib/Debug" PUBLIC "build/assimp/lib/Release" )
+	target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} )
+	target_link_libraries( ${PROJECT_NAME} glfw )
+	target_link_libraries( ${PROJECT_NAME} assimp )
+	target_link_libraries( ${PROJECT_NAME} cglm )
+	target_include_directories ( ${PROJECT_NAME} PRIVATE "glad/include" "assimp/include" "build/assimp/include" )
 	
 endfunction()
 

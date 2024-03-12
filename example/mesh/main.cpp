@@ -1,37 +1,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <assimp/cimport.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <cglm/cglm.h>
 #include <string>
 #include <iostream>
 #include "shader.h"
-
-static const char* VS = "#version 330 core\n"
-"layout(location = 0) in vec3 aPos;\n"
-"layout(location = 1) in vec3 aColor;\n"
-"\n"
-"out vec3 ourColor;\n"
-"\n"
-"void main()\n"
-"{\n"
-"  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"  ourColor = aColor;\n"
-"}\n"
-"\n";
-
-static const char* FS = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"in vec3 ourColor;\n"
-"\n"
-"void main()\n"
-"{\n"
-"  FragColor = vec4(ourColor, 1.0);\n"
-"}\n"
-"\n";
-
-float vertices[] = {
-   0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
-  -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-   0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f 
-};
 
 void processInput(GLFWwindow* window)
 {
@@ -73,18 +49,41 @@ int main(void)
       return -1;
     }
 
-    Shader ourShader(VS, FS);
-    unsigned int VBO, VAO;
+    const aiScene* scene = aiImportFile("monkey.obj", aiProcessPreset_TargetRealtime_Fast);
+    aiMesh* mesh = scene->mMeshes[0];
+
+    unsigned int face = mesh->mNumFaces;
+    unsigned int d = 0;
+    unsigned int* index_array = new unsigned int[face * 3 * sizeof(unsigned int)];
+    for (int i = 0; i < face; i++) {
+      const struct aiFace* vf = &(mesh->mFaces[i]);
+      index_array[d++] = (vf->mIndices[0]);
+      index_array[d++] = (vf->mIndices[1]);
+      index_array[d++] = (vf->mIndices[2]);
+    }
+
+    Shader ourShader("color_vs", "color_fs");
+    unsigned int VBO, VAO, IND;
     glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
+    glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mesh->mNumVertices, mesh->mVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glBindVertexArray(0);
+
+    glGenBuffers(1, &IND);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * face, index_array, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    
+    glDisable(GL_CULL_FACE);
+    
+    mat4 idx;
+    glm_mat4_identity(idx);
+    glUniformMatrix4fv(0, 1, false, *idx);
+    glUniform3f(1, 1.0f, 0.5f, 0.5f);
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
