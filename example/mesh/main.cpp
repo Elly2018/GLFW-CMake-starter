@@ -79,9 +79,15 @@ int main(void)
     
     glDisable(GL_CULL_FACE);
     
-    mat4 idx;
+    mat4 idx, view, projection, mvp;
     glm_mat4_identity(idx);
-    glUniformMatrix4fv(0, 1, false, *idx);
+    glm_mat4_identity(view);
+    glm_mat4_identity(mvp);
+    glm_translate(view, new float[3] { 0, 0, 5 });
+    glm_perspective_default(640 / 480, projection);
+    glm_mat4_mul(idx, view, mvp);
+    glm_mat4_mul(mvp, projection, mvp);
+    glUniform4fv(0, 1, false, mvp[0][0]);
     glUniform3f(1, 1.0f, 0.5f, 0.5f);
 
     while (!glfwWindowShouldClose(window))
