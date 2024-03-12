@@ -7,6 +7,13 @@ find_package( OpenGL REQUIRED )
 include_directories( ${OPENGL_INCLUDE_DIRS} )
 
 add_subdirectory( glfw )
+add_subdirectory( assimp )
+
+set_target_properties(assimp PROPERTIES FOLDER "assimp")
+set_target_properties(unit PROPERTIES FOLDER "assimp")
+set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "assimp")
+set_target_properties(uninstall PROPERTIES FOLDER "assimp")
+set_target_properties(zlibstatic PROPERTIES FOLDER "assimp")
 
 if( MSVC )
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup" )
@@ -24,13 +31,18 @@ function(add_example ARG)
 
 	add_executable( ${PROJECT_NAME} WIN32 ${GLFW-CMAKE-STARTER-SRC} )
 	target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} glfw )
-	target_include_directories ( ${PROJECT_NAME} PRIVATE "glad/include" )
+	target_include_directories ( ${PROJECT_NAME} PRIVATE "glad/include" "assimp/include" )
 	
 endfunction()
 
-add_example(
+set ( EXAMPLES 
 	"example/triangle"
+	"example/mesh"
 )
+
+foreach(EXAMPLE ${EXAMPLES})
+add_example( ${EXAMPLE} )
+endforeach()
 
 
 if( MSVC )
