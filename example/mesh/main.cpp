@@ -87,7 +87,7 @@ int main(void)
     glm_perspective_default(640 / 480, projection);
     glm_mat4_mul(idx, view, mvp);
     glm_mat4_mul(mvp, projection, mvp);
-    glUniform4fv(0, 1, false, mvp[0][0]);
+    glUniformMatrix4fv(0, 1, false, (float * )mvp);
     glUniform3f(1, 1.0f, 0.5f, 0.5f);
 
     while (!glfwWindowShouldClose(window))
