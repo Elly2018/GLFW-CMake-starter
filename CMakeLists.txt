@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.1 )
+cmake_minimum_required( VERSION 3.24.2 )
 
 project( GLFW-CMake-starter )
 
@@ -20,13 +20,15 @@ if( MSVC )
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup" )
 endif()
 
+add_custom_target( ASSETS COMMAND ${CMAKE_COMMAND} -E copy_directory ../example/assets ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/assets )
+
 function(add_example ARG)
 
 	set( EXAMPLE_SOURCES "" )
 	set( GLFW-CMAKE-STARTER-SRC "" )
 	get_filename_component( PROJECT_NAME ${ARG} NAME )
 	
-	file(GLOB_RECURSE EXAMPLE_SOURCES ${ARG}/*.cpp ${ARG}/*.hpp ${ARG}/*.cc ${ARG}/*.h)
+	file(GLOB_RECURSE EXAMPLE_SOURCES ${ARG}/*.cpp ${ARG}/*.hpp ${ARG}/*.cc ${ARG}/*.h ${ARG}/*.c)
 
 	set( GLFW-CMAKE-STARTER-SRC ${EXAMPLE_SOURCES} )
 
@@ -37,6 +39,7 @@ function(add_example ARG)
 	target_link_libraries( ${PROJECT_NAME} assimp )
 	target_link_libraries( ${PROJECT_NAME} cglm )
 	target_include_directories ( ${PROJECT_NAME} PRIVATE "glad/include" "assimp/include" "build/assimp/include" )
+	add_dependencies( ${PROJECT_NAME} ASSETS )
 	
 endfunction()
 
