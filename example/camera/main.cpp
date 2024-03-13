@@ -9,6 +9,7 @@
 #include <iostream>
 #include "shader.h"
 #include "camera.h"
+#include "Mesh.h"
 
 void processInput(GLFWwindow* window)
 {
@@ -64,36 +65,9 @@ int main(void)
       return -1;
     }
 
-    const aiScene* scene = aiImportFile("assets/mesh/monkey.obj", aiProcessPreset_TargetRealtime_Fast);
-    aiMesh* mesh = scene->mMeshes[0];
-
-    unsigned int face = mesh->mNumFaces;
-    unsigned int d = 0;
-    unsigned int* index_array = new unsigned int[face * 3 * sizeof(unsigned int)];
-    for (int i = 0; i < face; i++) {
-      const struct aiFace* vf = &(mesh->mFaces[i]);
-      index_array[d++] = (vf->mIndices[0]);
-      index_array[d++] = (vf->mIndices[1]);
-      index_array[d++] = (vf->mIndices[2]);
-    }
-    std::cout << "face count: " << face << std::endl;
-
+    Mesh* mesh = Mesh::LoadFromFile("assets/mesh/monkey.obj");
     Camera camera(new float [3] {0.0f, 0.0f, 0.0f}, new float [3] {0.0f, 0.0f, 0.0f});
     Shader ourShader("assets/shader/color.vs", "assets/shader/color.fs");
-    unsigned int VBO, VAO, IND;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(aiVector3D) * mesh->mNumVertices, mesh->mVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-
-    std::cout << "vertices count: " << mesh->mNumVertices << std::endl;
-
-    glGenBuffers(1, &IND);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, face * 3 * sizeof(unsigned int), index_array, GL_STATIC_DRAW);
     
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -129,15 +103,10 @@ int main(void)
 
         ourShader.setMat4("mvp", false, (float*)mvp);
         ourShader.setFloat3("ourColor", new float [3] { 1.0f, 0.5f, 0.5f });
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
-        glDrawElements(GL_TRIANGLES, face * 3, GL_UNSIGNED_INT, 0);
+        mesh->bindVAO();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
     glfwTerminate();
     return 0;
 }
