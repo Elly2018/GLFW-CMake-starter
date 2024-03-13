@@ -77,7 +77,7 @@ int main(void)
     }
     std::cout << "face count: " << face << std::endl;
 
-    Shader ourShader("assets/shader/color_vs", "assets/shader/color_fs");
+    Shader ourShader("assets/shader/color.vs", "assets/shader/color.fs");
     unsigned int VBO, VAO, IND;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
