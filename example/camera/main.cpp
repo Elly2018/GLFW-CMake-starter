@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include "shader.h"
+#include "camera.h"
 
 void processInput(GLFWwindow* window)
 {
@@ -25,12 +26,12 @@ void framebuffer_size_callback(GLFWwindow* window, int w, int h)
   }
 }
 
-double time;
+double __time = 0.0;
 double delta() 
 {
   double current = glfwGetTime();
-  double a = current - time;
-  time = current;
+  double a = current - __time;
+  __time = current;
   return a;
 }
 
@@ -77,6 +78,7 @@ int main(void)
     }
     std::cout << "face count: " << face << std::endl;
 
+    Camera camera(new float [3] {0.0f, 0.0f, 0.0f}, new float [3] {0.0f, 0.0f, 0.0f});
     Shader ourShader("assets/shader/color.vs", "assets/shader/color.fs");
     unsigned int VBO, VAO, IND;
     glGenVertexArrays(1, &VAO);
@@ -96,12 +98,12 @@ int main(void)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     
-    time = glfwGetTime();
+    __time = glfwGetTime();
     mat4 idx, view, projection, mvp;
     glm_mat4_identity(idx);
-    glm_mat4_identity(view);
-    glm_mat4_identity(projection);
     glm_mat4_identity(mvp);
+    camera.getView(&view);
+    camera.getProjection(&projection);
     glm_translate(view, new float[3] { 0, 0, -5 });
     glm_perspective_default(640 / 480, projection);
     mat4* ms[3] = { &projection, &view, &idx };
