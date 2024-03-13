@@ -54,7 +54,7 @@ int main(void)
       return -1;
     }
 
-    const aiScene* scene = aiImportFile("monkey.obj", aiProcessPreset_TargetRealtime_Fast);
+    const aiScene* scene = aiImportFile("assets/mesh/monkey.obj", aiProcessPreset_TargetRealtime_Fast);
     aiMesh* mesh = scene->mMeshes[0];
 
     unsigned int face = mesh->mNumFaces;
@@ -68,7 +68,7 @@ int main(void)
     }
     std::cout << "face count: " << face << std::endl;
 
-    Shader ourShader("color_vs", "color_fs");
+    Shader ourShader("assets/shader/color_vs", "assets/shader/color_fs");
     unsigned int VBO, VAO, IND;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);

@@ -25,6 +25,15 @@ void framebuffer_size_callback(GLFWwindow* window, int w, int h)
   }
 }
 
+double time;
+double delta() 
+{
+  double current = glfwGetTime();
+  double a = current - time;
+  time = current;
+  return a;
+}
+
 int main(void)
 {
     GLFWwindow* window;
@@ -54,7 +63,7 @@ int main(void)
       return -1;
     }
 
-    const aiScene* scene = aiImportFile("monkey.obj", aiProcessPreset_TargetRealtime_Fast);
+    const aiScene* scene = aiImportFile("assets/mesh/monkey.obj", aiProcessPreset_TargetRealtime_Fast);
     aiMesh* mesh = scene->mMeshes[0];
 
     unsigned int face = mesh->mNumFaces;
@@ -68,7 +77,7 @@ int main(void)
     }
     std::cout << "face count: " << face << std::endl;
 
-    Shader ourShader("color_vs", "color_fs");
+    Shader ourShader("assets/shader/color_vs", "assets/shader/color_fs");
     unsigned int VBO, VAO, IND;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -87,7 +96,7 @@ int main(void)
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     
-    double time = glfwGetTime();
+    time = glfwGetTime();
     mat4 idx, view, projection, mvp;
     glm_mat4_identity(idx);
     glm_mat4_identity(view);
@@ -97,10 +106,6 @@ int main(void)
     glm_perspective_default(640 / 480, projection);
     mat4* ms[3] = { &projection, &view, &idx };
     glm_mat4_mulN(ms, 3, mvp);
-    glm_mat4_print(idx, stderr);
-    glm_mat4_print(view, stderr);
-    glm_mat4_print(projection, stderr);
-    glm_mat4_print(mvp, stderr);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
@@ -115,10 +120,8 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
         ourShader.use();
 
-        double current = glfwGetTime();
-        double delta = current - time;
-        time = current;
-        glm_rotate(idx, delta * 0.5f , new float[3] { 0.0f, 1.0f, 0.0f });
+        double _delta = delta();
+        glm_rotate(idx, _delta * 0.5f , new float[3] { 0.0f, 1.0f, 0.0f });
         mat4* ms[3] = { &projection, &view, &idx };
         glm_mat4_mulN(ms, 3, mvp);
 

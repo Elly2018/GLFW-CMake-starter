@@ -20,7 +20,10 @@ if( MSVC )
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup" )
 endif()
 
-add_custom_target( ASSETS COMMAND ${CMAKE_COMMAND} -E copy_directory ../example/assets ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/assets )
+add_custom_target( assetsCopy COMMAND ${CMAKE_COMMAND} -E copy_directory ../example/assets ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/assets )
+if ( MSVC )
+	set_target_properties ( ${assetsCopy} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ../example/assets )
+endif()
 
 function(add_example ARG)
 
@@ -39,7 +42,7 @@ function(add_example ARG)
 	target_link_libraries( ${PROJECT_NAME} assimp )
 	target_link_libraries( ${PROJECT_NAME} cglm )
 	target_include_directories ( ${PROJECT_NAME} PRIVATE "glad/include" "assimp/include" "build/assimp/include" )
-	add_dependencies( ${PROJECT_NAME} ASSETS )
+	add_dependencies( ${PROJECT_NAME} assetsCopy )
 	
 endfunction()
 
