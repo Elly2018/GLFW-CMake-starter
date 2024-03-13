@@ -15,6 +15,7 @@ set_target_properties(unit PROPERTIES FOLDER "assimp")
 set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "assimp")
 set_target_properties(uninstall PROPERTIES FOLDER "assimp")
 set_target_properties(zlibstatic PROPERTIES FOLDER "assimp")
+set_target_properties(cglm PROPERTIES FOLDER "cglm")
 
 if( MSVC )
     SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup" )
@@ -47,11 +48,14 @@ function(add_example ARG)
 endfunction()
 
 set ( EXAMPLES 
-	"example/triangle"
-	"example/triangle2"
-	"example/mesh"
-	"example/texture"
-	"example/camera"
+	"example/1.triangle"
+	"example/2.triangle2"
+	"example/3.mesh"
+	"example/4.camera"
+	"example/5.texture"
+	"example/6.material"
+	"example/7.sky"
+	"example/8.instancing"
 )
 
 foreach(EXAMPLE ${EXAMPLES})
