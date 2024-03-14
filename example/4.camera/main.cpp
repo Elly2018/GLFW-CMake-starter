@@ -39,6 +39,7 @@ double delta()
 int main(void)
 {
     GLFWwindow* window;
+    double movement = 1.0f;
 
     if (!glfwInit())
         return -1;
@@ -66,15 +67,16 @@ int main(void)
     }
 
     Mesh* mesh = Mesh::LoadFromFile("assets/mesh/monkey.obj");
-    Camera camera(new float [3] {0.0f, 0.0f, 0.0f}, new float [3] {0.0f, 0.0f, 0.0f});
+    Camera camera(new float [3] {0.0f, -1.0f, -2.0f}, new float [3] {0.0f, 0.0f, 0.0f});
     Shader ourShader("assets/shader/color.vs", "assets/shader/color.fs");
     
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     
     __time = glfwGetTime();
-    mat4 idx, view, projection, mvp;
+    mat4 idx, view, projection, mrot, mvp;
     glm_mat4_identity(idx);
+    glm_mat4_identity(mrot);
     glm_mat4_identity(mvp);
     camera.getView(&view);
     camera.getProjection(&projection);
@@ -97,12 +99,55 @@ int main(void)
         ourShader.use();
 
         double _delta = delta();
-        glm_rotate(idx, _delta * 0.5f , new float[3] { 0.0f, 1.0f, 0.0f });
-        mat4* ms[3] = { &projection, &view, &idx };
-        glm_mat4_mulN(ms, 3, mvp);
+        //glm_rotate(idx, _delta * 0.5f , new float[3] { 0.0f, 1.0f, 0.0f }); // object self rotation
 
+        vec3 move { 0, 0, 0 };
+        vec3 rot{ 0, 0, 0 };
+        if (glfwGetKey(window, GLFW_KEY_W))
+        {
+          move[2] += _delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A))
+        {
+          move[0] += _delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D))
+        {
+          move[0] += -_delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S))
+        {
+          move[2] += -_delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
+        {
+          move[1] += _delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_SPACE))
+        {
+          move[1] += -_delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_Q))
+        {
+          rot[1] += -_delta * movement * 50;
+        }
+        if (glfwGetKey(window, GLFW_KEY_E))
+        {
+          rot[1] += _delta * movement * 50;
+        }
+        
         ourShader.setMat4("mvp", false, (float*)mvp);
         ourShader.setFloat3("ourColor", new float [3] { 1.0f, 0.5f, 0.5f });
+        camera.move(move, true);
+        //camera.rot(rot);
+
+        camera.getView(&view);
+        camera.getProjection(&projection);
+        glm_rotate(mrot, glm_rad(rot[0]), new float[3] { 1, 0, 0 });
+        glm_rotate(mrot, glm_rad(rot[1]), new float[3] { 0, 1, 0 });
+        glm_rotate(mrot, glm_rad(rot[2]), new float[3] { 0, 0, 1 });
+        mat4* ms[4] = { &projection, &mrot, &view, &idx};
+        glm_mat4_mulN(ms, 4, mvp);
         mesh->bindVAO();
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -9,9 +9,9 @@ public:
 		glm_mat4_identity(view);
 		glm_mat4_identity(projection);
 		glm_translate(view, pos);
-		glm_rotate(view, glm_deg(rot[0]), new float[3] { 1, 0, 0 });
-		glm_rotate(view, glm_deg(rot[1]), new float[3] { 0, 1, 0 });
-		glm_rotate(view, glm_deg(rot[2]), new float[3] { 0, 0, 1 });
+		glm_rotate(view, glm_rad(rot[0]), new float[3] { 1, 0, 0 });
+		glm_rotate(view, glm_rad(rot[1]), new float[3] { 0, 1, 0 });
+		glm_rotate(view, glm_rad(rot[2]), new float[3] { 0, 0, 1 });
 		glm_perspective_default(640 / 480, projection);
 	}
 
@@ -34,9 +34,9 @@ public:
 	}
 	void rot(vec3 vec) 
 	{
-		glm_rotate(view, glm_deg(vec[0]), new float[3] { 1, 0, 0 });
-		glm_rotate(view, glm_deg(vec[1]), new float[3] { 0, 1, 0 });
-		glm_rotate(view, glm_deg(vec[2]), new float[3] { 0, 0, 1 });
+		glm_rotate(view, glm_rad(vec[0]), new float[3] { 1, 0, 0 });
+		glm_rotate(view, glm_rad(vec[1]), new float[3] { 0, 1, 0 });
+		glm_rotate(view, glm_rad(vec[2]), new float[3] { 0, 0, 1 });
 	}
 
 private:
