@@ -8,6 +8,9 @@
 #include <string>
 #include <iostream>
 #include "shader.h"
+#include "material.h"
+#include "camera.h"
+#include "Mesh.h"
 
 void processInput(GLFWwindow* window)
 {
@@ -25,9 +28,19 @@ void framebuffer_size_callback(GLFWwindow* window, int w, int h)
   }
 }
 
+double __time = 0.0;
+double delta() 
+{
+  double current = glfwGetTime();
+  double a = current - __time;
+  __time = current;
+  return a;
+}
+
 int main(void)
 {
     GLFWwindow* window;
+    double movement = 1.0f;
 
     if (!glfwInit())
         return -1;
@@ -54,53 +67,25 @@ int main(void)
       return -1;
     }
 
-    const aiScene* scene = aiImportFile("assets/mesh/monkey.obj", aiProcessPreset_TargetRealtime_Fast);
-    aiMesh* mesh = scene->mMeshes[0];
-
-    unsigned int face = mesh->mNumFaces;
-    unsigned int d = 0;
-    unsigned int* index_array = new unsigned int[face * 3 * sizeof(unsigned int)];
-    for (int i = 0; i < face; i++) {
-      const struct aiFace* vf = &(mesh->mFaces[i]);
-      index_array[d++] = (vf->mIndices[0]);
-      index_array[d++] = (vf->mIndices[1]);
-      index_array[d++] = (vf->mIndices[2]);
-    }
-    std::cout << "face count: " << face << std::endl;
-
-    Shader ourShader("assets/shader/color_vs", "assets/shader/color_fs");
-    unsigned int VBO, VAO, IND;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(aiVector3D) * mesh->mNumVertices, mesh->mVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-
-    std::cout << "vertices count: " << mesh->mNumVertices << std::endl;
-
-    glGenBuffers(1, &IND);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, face * 3 * sizeof(unsigned int), index_array, GL_STATIC_DRAW);
+    Mesh* mesh = Mesh::LoadFromFile("assets/mesh/monkey.obj");
+    Camera camera(new float [3] {0.0f, -1.0f, -2.0f}, new float [3] {0.0f, 0.0f, 0.0f});
+    Shader* ourShader = new Shader("assets/shader/color.vs", "assets/shader/color.fs");
+    Material ourMaterial(&ourShader);
     
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     
-    double time = glfwGetTime();
-    mat4 idx, view, projection, mvp;
+    __time = glfwGetTime();
+    mat4 idx, view, projection, mrot, mvp;
     glm_mat4_identity(idx);
-    glm_mat4_identity(view);
-    glm_mat4_identity(projection);
+    glm_mat4_identity(mrot);
     glm_mat4_identity(mvp);
+    camera.getView(&view);
+    camera.getProjection(&projection);
     glm_translate(view, new float[3] { 0, 0, -5 });
     glm_perspective_default(640 / 480, projection);
     mat4* ms[3] = { &projection, &view, &idx };
     glm_mat4_mulN(ms, 3, mvp);
-    glm_mat4_print(idx, stderr);
-    glm_mat4_print(view, stderr);
-    glm_mat4_print(projection, stderr);
-    glm_mat4_print(mvp, stderr);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
@@ -115,24 +100,60 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
         ourShader.use();
 
-        double current = glfwGetTime();
-        double delta = current - time;
-        time = current;
-        glm_rotate(idx, delta * 0.5f , new float[3] { 0.0f, 1.0f, 0.0f });
-        mat4* ms[3] = { &projection, &view, &idx };
-        glm_mat4_mulN(ms, 3, mvp);
+        double _delta = delta();
+        //glm_rotate(idx, _delta * 0.5f , new float[3] { 0.0f, 1.0f, 0.0f }); // object self rotation
 
+        vec3 move { 0, 0, 0 };
+        vec3 rot{ 0, 0, 0 };
+        if (glfwGetKey(window, GLFW_KEY_W))
+        {
+          move[2] += _delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A))
+        {
+          move[0] += _delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D))
+        {
+          move[0] += -_delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S))
+        {
+          move[2] += -_delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
+        {
+          move[1] += _delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_SPACE))
+        {
+          move[1] += -_delta * movement;
+        }
+        if (glfwGetKey(window, GLFW_KEY_Q))
+        {
+          rot[1] += -_delta * movement * 50;
+        }
+        if (glfwGetKey(window, GLFW_KEY_E))
+        {
+          rot[1] += _delta * movement * 50;
+        }
+        
         ourShader.setMat4("mvp", false, (float*)mvp);
         ourShader.setFloat3("ourColor", new float [3] { 1.0f, 0.5f, 0.5f });
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IND);
-        glDrawElements(GL_TRIANGLES, face * 3, GL_UNSIGNED_INT, 0);
+        camera.move(move, true);
+        //camera.rot(rot);
+
+        camera.getView(&view);
+        camera.getProjection(&projection);
+        glm_rotate(mrot, glm_rad(rot[0]), new float[3] { 1, 0, 0 });
+        glm_rotate(mrot, glm_rad(rot[1]), new float[3] { 0, 1, 0 });
+        glm_rotate(mrot, glm_rad(rot[2]), new float[3] { 0, 0, 1 });
+        mat4* ms[4] = { &projection, &mrot, &view, &idx};
+        glm_mat4_mulN(ms, 4, mvp);
+        mesh->bindVAO();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
     glfwTerminate();
     return 0;
 }
